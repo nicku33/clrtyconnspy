@@ -1,23 +1,43 @@
 Connspy is a command line utility to parse connection logs in either batch or realtime and output summaries.
 
-### INSTALLATION
+It expects logs in the following format, whitespace separated, "\n" end of line.
 
-> pip install .
+TS        is the UNIX timestamp
+FROM_HOST is the host that initiated the connection request
+TO_HOST   is the host that recieved the connection request
+
+
+
+
+INSTALLATION
+------------
+
+Directly from github:
+    pip install git+https://github.com/nicku33/clrtyconnspy
+
+Or clone and either 
+    pip install .
+or
+    python setup.py install
 
 This will place the 'connspy' utility in your path as well.
+Note: for some reason if you have pyscaffold installed, you may get an error in logs during setup.py. You can ignore or uninstall pyscaffold.
 
-Note: for some reason if you have pyscaffold installed, you may get an error during setup.py. You can ignore or uninstall pyscaffold.
 
-### DEPENDENCIES
+
+DEPENDENCIES
+------------
 
 python 3.0+
 bloom-filter>=1.3
 
 
-### TODO 
 
-* get current tests working
-* figure out exactly what is meant by out of order file processing
+TODO 
+----
+
+* figure out how to deal with out of order file processing when --hourly splits is required and keyspace > memory 
+
 
 
 

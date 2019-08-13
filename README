@@ -1,0 +1,24 @@
+Connspy is a command line utility to parse connection logs in either batch or realtime and output summaries.
+
+### INSTALLATION
+
+> pip install .
+
+This will place the 'connspy' utility in your path as well.
+
+Note: for some reason if you have pyscaffold installed, you may get an error during setup.py. You can ignore or uninstall pyscaffold.
+
+### DEPENDENCIES
+
+python 3.0+
+bloom-filter>=1.3
+
+
+### TODO 
+
+* get current tests working
+* figure out exactly what is meant by out of order file processing
+
+
+
+

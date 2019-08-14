@@ -22,10 +22,11 @@ def parse_argv(argv):
     args_parser.add_argument('--max_log_late_seconds', type=int, 
             required=False, default=5 * 60, 
             help='the maximum time in seconds a log line can be late, relative to minimum time')
-    args_parser.add_argument('file', type=str, nargs='1', required=True, default=None,
+    args_parser.add_argument('file', type=str, nargs='*', default=None,
             help='the file to parse') 
 
     args = args_parser.parse_args(argv) 
+    args.to = args.to.lower()
 
     MIN_TS = 1199145600   # Jan 1, 2008 midnight
     if args.max_log_late_seconds < 0:
@@ -37,7 +38,7 @@ def parse_argv(argv):
     if args.time_end < args.time_init:
         raise Exception("time_end is before time_init")
     if not re.match(VALID_HOST_REGEX, args.to):
-        raise Exception("invalid to-host format. Must match " + VALID_HOST_REGEX)
+        raise Exception(f"invalid to-host {args.to} . Must match " + VALID_HOST_REGEX)
 
     return args
 
@@ -45,7 +46,8 @@ def parse_argv(argv):
 def process_stream(f, args, callback):
     latest_ts = -float('inf')
     parser = Parser()
-    
+    seen   = set()
+
     for line in f:
         ts, frm, to = parser.parse(line)
         if not ts:       # invalid
@@ -58,8 +60,8 @@ def process_stream(f, args, callback):
 
         if (args.time_init <= ts < args.time_end and
                         to ==      args.to  and 
-                       frm not in  to_found):
-            to_found.add(frm)
+                       frm not in  seen):
+            seen.add(frm)
             callback(frm)
 
 

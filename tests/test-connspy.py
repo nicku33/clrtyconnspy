@@ -1,5 +1,5 @@
 import unittest
-from connspy import process_stream, parse_argv
+from connspy.connspy import process_stream, parse_argv
 
 class ProcessorTest(unittest.TestCase):
 
@@ -29,7 +29,7 @@ class ProcessorTest(unittest.TestCase):
         out = []
         args = parse_argv('--time_init 1567000000 --time_end 1580000000 --to y'.split())
         process_stream(f, args, lambda x: out.append(x))
-        self.assertListEqual(['a', 'b', 'x'], out)
+        self.assertListEqual(['a', 'b', 'x'], sorted(out))
 
     def testTimeFilterWorks(self):
         f = [ "1570000000 b a", 

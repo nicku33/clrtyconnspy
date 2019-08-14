@@ -79,12 +79,14 @@ bloom-filter>=1.3
 
 
 
+
 TODO 
 ----
 
-* do hourly_split logic
+* test hourly_split logic
 * replace set() with bloom filter
-
+* test --tail
+* lowercase input domains
 
 
 

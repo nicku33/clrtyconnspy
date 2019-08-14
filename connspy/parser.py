@@ -2,13 +2,14 @@ import unittest
 import logging
 import re
 
-MIN_TS = 1565293593   # 2010 01 01
 VALID_HOST_REGEX = r"[0-9a-z]+"
+INVALID          = (None, None, None)
 logger = logging.getLogger("parser")
 
 class Parser():
     """
-    This class takes care of all single line logging,
+    This Parser currently rigidly accepts lines
+    as whitespace delimited TS,FROM,TO and
     enforcing validity of inputs.
     """
 
@@ -16,33 +17,24 @@ class Parser():
         self.valid_domain_regex = re.compile(VALID_HOST_REGEX)
 
     def parse(self, line):
-
-        line = line.lower()
-
-        # no argument to .split means split on multiple whitespace '\s+'
+        # nb. no argument to .split means split on multiple whitespace '\s+'
         # also ignores initial and final whitespace
 
-        line_array = line.split()
+        line_array = line.lower().split()
         if len(line_array) != 3:
             logger.error("Invalid line, too many elements: " + line)
-            return None
-        if line_array[0].isdigit():
-            ts = int(line_array[0])
-        else:
+            return INVALID 
+        if not line_array[0].isdigit():
             logger.error("Invalid line, first param not timestamp: " + line)
-            return None
-        if ts < MIN_TS:
-            logger.error("Invalid timestamp before 2010")
-            return None
+            return INVALID
 
-        frm = line_array[1]
-        to = line_array[2]
-
+        # regex useful if you need character range guaratees for trie or compression)
         if not (self.valid_domain_regex.match(frm) and
                 self.valid_domain_regex.match(to)):
             logger.error("Invalid domains for line: " + line)
-            return None
-        return (ts, frm, to) 
+            return INVALID
+       
+        return int(line_array[0]), line_array[1], line_array[2]
 
 
 class ParserTest(unittest.TestCase):

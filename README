@@ -1,11 +1,57 @@
 Connspy is a command line utility to parse connection logs in either batch or realtime and output summaries.
 
-It expects logs in the following format, whitespace separated, "\n" end of line.
+
+connspy: parse connection logs to see who is connecting to who
+
+positional arguments:
+  files                 the files to parse, separated by space. Leave blank
+                        for STDIN
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --to_host TO_HOST     Collect all hosts who connected to this host
+  --from_host FROM_HOST
+                        Collect all hosts who this host connected to
+  --busiest_from_host   Output the host who initiated the most connections
+  --hourly              Group output by hour
+  --time_init TIME_INIT
+                        the earliest time stamp of the log entries we should
+                        consider
+  --time_end TIME_END   the end of the time stamp range, noninclusive
+  --tail                if present, the application will continue to read
+                        first filegiven and output when a new hour GMT is
+                        complete, as specified bymax_log_late_seconds
+  --max_log_late_seconds MAX_LOG_LATE_SECONDS
+                        the maximum time in seconds a log line can be late,
+                        relative to minimum time
+
+It expects logs in the following line format, whitespace separated, "\n" end of line.
 
 TS        is the UNIX timestamp
 FROM_HOST is the host that initiated the connection request
 TO_HOST   is the host that recieved the connection request
 
+
+QUESTIONS
+---------
+Q1: run as 
+   connspy --to_host <host> --time_init <ts> --time_end <ts> input.txt
+
+Q2a: run as
+   connspy --to_host <host> --from_host <host> --busiest_from_host \
+           --time_init <ts> --time_end <ts> \
+           --hourly input1.txt input2.txt input3.txt
+
+# currently the assumption is that logs do not overlap beyond the lag
+assumption of 5 minutes and are given in order
+
+Q2b: run in --tail mode 
+   connspy --to_host <host> --from_host <host> --busiest_from_host \
+           --time_init <ts> --time_end <ts> \
+           --hourly --tail input.txt
+
+# in this mode, the file can be written to and even deleted and without
+interrupting the process 
 
 
 
@@ -36,7 +82,8 @@ bloom-filter>=1.3
 TODO 
 ----
 
-* figure out how to deal with out of order file processing when --hourly splits is required and keyspace > memory 
+* do hourly_split logic
+* replace set() with bloom filter
 
 
 

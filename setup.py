@@ -11,12 +11,10 @@ setup (
     author_email='nick.ursa@gmail.com',
     packages=['connspy'],
     install_requires=['bloom-filter'],
-    test_suite='tests',
     entry_points = {
-        'console_scripts': ['connspy=connspy.entrypoint:main']
+        'console_scripts': ['connspy=connspy.connspy:main',
+            'connspy-stream=connspy.connspy-stream:main']
     }
 )
 
-# credit to:
-# https://python-packaging.readthedocs.io/en/latest/index.html
-
+# refered to: https://python-packaging.readthedocs.io/en/latest/index.html

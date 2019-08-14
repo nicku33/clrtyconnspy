@@ -13,7 +13,7 @@ logger = logging.getLogger("connspy")
 def parse_argv(argv):
     args_parser = argparse.ArgumentParser(description=""
             "connspy: parse connection logs to see who is connecting to who")
-            args_parser.add_argument('--to', type=str, required=False,
+    args_parser.add_argument('--to', type=str, required=False,
             help='Collect all hosts who connected to this host')
     args_parser.add_argument('--time_init', type=int, required=True,
             help='the earliest time stamp of the log entries we should consider')

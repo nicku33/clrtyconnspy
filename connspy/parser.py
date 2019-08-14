@@ -20,21 +20,21 @@ class Parser():
         # nb. no argument to .split means split on multiple whitespace '\s+'
         # also ignores initial and final whitespace
 
-        line_array = line.lower().split()
-        if len(line_array) != 3:
+        ele = line.lower().split()
+        if len(ele) != 3:
             logger.error("Invalid line, too many elements: " + line)
             return INVALID 
-        if not line_array[0].isdigit():
+        if not ele[0].isdigit():
             logger.error("Invalid line, first param not timestamp: " + line)
             return INVALID
 
         # regex useful if you need character range guaratees for trie or compression)
-        if not (self.valid_domain_regex.match(frm) and
-                self.valid_domain_regex.match(to)):
+        if not (self.valid_domain_regex.match(ele[0]) and
+                self.valid_domain_regex.match(ele[1])):
             logger.error("Invalid domains for line: " + line)
             return INVALID
        
-        return int(line_array[0]), line_array[1], line_array[2]
+        return int(ele[0]), ele[1], ele[2]
 
 
 class ParserTest(unittest.TestCase):
@@ -49,11 +49,11 @@ class ParserTest(unittest.TestCase):
         self.assertTupleEqual((1565293593, '1', 'b'), p.parse("  1565293593 1 b  "))
 
         # expected to fail
-        self.assertIsNone(p.parse(""))
-        self.assertIsNone(p.parse("          "))
-        self.assertIsNone(p.parse("a  b  c"))
-        self.assertIsNone(p.parse("1b  c"))
-        self.assertIsNone(p.parse("1b  c"))
-        self.assertIsNone(p.parse("1565293593.23 b  c"))
-        self.assertIsNone(p.parse("1565293593 b  c  d"))
+        self.assertIsNone(p.parse("")[0])
+        self.assertIsNone(p.parse("          ")[0])
+        self.assertIsNone(p.parse("a  b  c")[0])
+        self.assertIsNone(p.parse("1b  c")[0])
+        self.assertIsNone(p.parse("1b  c")[0])
+        self.assertIsNone(p.parse("1565293593.23 b  c")[0])
+        self.assertIsNone(p.parse("1565293593 b  c  d")[0])
 

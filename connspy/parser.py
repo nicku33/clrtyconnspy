@@ -1,5 +1,6 @@
 import logging
 import re
+import datetime
 
 VALID_HOST_REGEX = r"[0-9a-z]+"
 INVALID          = (None, None, None)
@@ -24,8 +25,15 @@ class Parser():
         if len(ele) != 3:
             logger.error("Invalid line, too many elements: " + line)
             return INVALID 
-        if not ele[0].isdigit():
-            logger.error("Invalid line, first param not timestamp: " + line)
+
+        try:
+            ts = float(ele[0])
+            if ts > 999999999999:
+                ts /= 1000.0
+            dt = datetime.datetime.fromtimestamp(ts)
+            ts = dt.timestamp()
+        except:
+            logger.error(f"Cannot parse {ele[0]} into a timestamp")
             return INVALID
 
         # regex useful if you need character range guaratees for trie or compression)
@@ -34,5 +42,5 @@ class Parser():
             logger.error("Invalid domains for line: " + line)
             return INVALID
        
-        return int(ele[0]), ele[1], ele[2]
+        return ts, ele[1], ele[2]
 

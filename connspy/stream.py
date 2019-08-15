@@ -3,6 +3,7 @@ import logging
 import argparse
 import re
 import datetime
+import time
 from collections import Counter, defaultdict
 from time import sleep
 
@@ -68,24 +69,34 @@ def parse_argv(argv):
 
     return args
 
+# for convinience, but I should switch to keys
+TO, FROM, MOST = 0, 1, 2
+class Processor:
 
-def process(fs, args, callback, tail=False):
-    parser = Parser()
+    def __init__(self, args, callback):
+        self.args = args
+        self.callback = callback
+        self.hourly_summaries = defaultdict(lambda: [BloomStringSet(), BloomStringSet(), LimitedCounter()])
 
-    # bookkeeping... we need current hour and
-    # one for the upcoming hour
-
-    TO, FROM, MOST = 0, 1, 2
-    # hourly_summaries = defaultdict(lambda: [set(), set(), LimitedCounter()])
-    hourly_summaries = defaultdict(lambda: [BloomStringSet(), BloomStringSet(), LimitedCounter()])
-   
-    def hour_of(ts):
+    def hour_of(self, ts):
         dt = datetime.datetime.utcfromtimestamp(ts)
-        return datetime.datetime(dt.year, dt.month, dt.day, 
+        # while you could ts % 3600, there have been like 40 leap
+        # seconds since 1970, and I'm sure UNIX type people
+        # def care about that kind of stuff
+        ts = datetime.datetime(dt.year, dt.month, dt.day, 
                                  dt.hour, 0, 0, 
                                  tzinfo=datetime.timezone.utc).timestamp()
-    while fs:
-        f = fs.pop(0)
+        return ts
+
+    def process(self, f, tail=False):
+        parser = Parser()
+        hourly_summaries = self.hourly_summaries
+        args = self.args
+        callback = self.callback
+
+        # bookkeeping... we need current hour and
+        # one for the upcoming hour
+
         while True:
             line = f.readline()
             if line == "":
@@ -99,9 +110,8 @@ def process(fs, args, callback, tail=False):
             if not ts:
                 continue
               
-            # our start time is defines as the hour of the first time stamp we
-            # see
-            ts_hr = hour_of(ts)
+            # our start time is defines as the hour of the first time stamp
+            ts_hr = self.hour_of(ts)
             summary = hourly_summaries[ts_hr]
 
             # seen hosts bookkeeping
@@ -126,33 +136,50 @@ def process(fs, args, callback, tail=False):
                     summary[FROM],
                     summary[MOST].most_common(1)[0][0])
                 del(hourly_summaries[current_hour])
-    
-    # if we've finished all files, dump remaining
-    if not args.only_complete_hours:
-        hours = sorted(hourly_summaries.keys())
+
+    def dump_remaining(self): 
+        hours = sorted(self.hourly_summaries.keys())
         for hour in hours:
-            summary = hourly_summaries[hour]
-            callback(hour,
+            summary = self.hourly_summaries[hour]
+            self.callback(hour,
                 summary[TO],
                 summary[FROM],
                 summary[MOST].most_common(1)[0][0])
 
 
+def output(hour, to, frm, most):
+    for t in to:
+        print (f"{hour}\tTO\t{t}")
+    for f in frm:
+        print (f"{hour}\tFROM\t{f}")
+    print (f"{hour}\tMOST\t{most}")
+    
 def main():
-    args = parse_argv(sys.args[1:])
+    args = parse_argv(sys.argv[1:])
+    logger.info(args)
+
+    pr = Processor(args, output)
 
     # stdin case
-    if len(arg.files) == 0:
+    if len(args.files) == 0:
         logger.info("Reading from stdin")
         # not readline from stdin automatically blocks
-        process_stream(sys.stdin, args)
+        pr.process(sys.stdin)
         return
 
-    files_remaining = list(args.file)        # to make mutable
+    files_remaining = list(args.files)        # to make mutable
     while files_remaining:
         logger.info("Reading " + files_remaining[0])
 
         # TODO: Error recovery on bad file ? better to fail or skip
         with open(files_remaining.pop(0), 'r') as f:
             should_tail = not files_remaining and args.tail
-            process_stream(f, args, tail=should_tail)
+            pr.process(f, should_tail)
+
+    if not args.only_complete_hours:
+        pr.dump_remaining()
+
+
+if __name__ == '__main__':
+    logger.info("Called with: " + str(sys.argv))
+    main()

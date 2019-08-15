@@ -73,7 +73,6 @@ def main():
         seek_just_before_index(args.file, f, args.time_init)
         process_stream(f, args, lambda x: print (x))
 
-# '''uncomment if not using via setuptools or testisp'''
-# if __name__ == '__main__':
-#    logger.info("Called with: " + str(sys.argv))
-#    main_scanner(sys.argv)
+if __name__ == '__main__':
+    logger.info("Called with: " + str(sys.argv))
+    main()

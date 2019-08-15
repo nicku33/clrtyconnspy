@@ -2,7 +2,7 @@ import unittest
 import datetime
 import logging 
 from tempfile import NamedTemporaryFile
-from connspy.stream import process, parse_argv
+from connspy.stream import Processor, parse_argv
 
 # datetime.datetime(2019,3,1,14,0,0).utctimestamp() = 1551466800
 
@@ -20,6 +20,8 @@ class StreamTest(unittest.TestCase):
                 def callback(hr, to, frm, most):
                     res.append([hr, list(to), list(frm), most])
 
+                pr = Processor(args, callback)
+
                 f1.write(f"{HOUR1 + 3400} a b\n")
                 f1.write(f"{HOUR1 + 3450} d b\n")
                 f1.write(f"{HOUR1 + 3500} a c\n")
@@ -32,7 +34,7 @@ class StreamTest(unittest.TestCase):
                 f1.write(f"{HOUR1 + 3570} a d\n")
                 f1.flush()
                 
-                process([f2], args, callback)
+                pr.process(f2)
                 # we should see nothing
                 self.assertEqual(0, len(res))
               
@@ -44,7 +46,7 @@ class StreamTest(unittest.TestCase):
                 f1.flush()
 
                 f2.seek(0)
-                process([f2], args, callback)
+                pr.process(f2)
 
                 self.assertEqual(1, len(res))
 
@@ -61,7 +63,7 @@ class StreamTest(unittest.TestCase):
                 f1.flush()
 
                 f2.seek(0)
-                process([f2], args, callback)
+                pr.process(f2)
 
                 self.assertEqual(2, len(res))
                 self.assertEqual(HOUR1 + 3600, res[1][0])  # current hour
@@ -93,8 +95,11 @@ class StreamTest(unittest.TestCase):
             def callback(hr, to, frm, most):
                 res.append([hr, list(to), list(frm), most])
 
-            process([r1, r2], args, callback)
-        
+            pr = Processor(args, callback)
+            pr.process(r1)
+            pr.process(r2)
+            pr.dump_remaining()
+               
             self.assertEqual(2, len(res))
             self.assertEqual(HOUR1, res[0][0])  # current hour
             self.assertListEqual(['a'], sorted(res[0][1]))

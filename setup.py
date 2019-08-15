@@ -13,7 +13,7 @@ setup (
     install_requires=['bloom-filter'],
     entry_points = {
         'console_scripts': ['connspy=connspy.connspy:main',
-            'connspy-stream=connspy.connspy-stream:main']
+            'connspy-stream=connspy.stream:main']
     }
 )
 

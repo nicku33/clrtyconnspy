@@ -74,7 +74,7 @@ def main():
 
     with open(args.file, 'r') as f:
         if not args.nofastseek:
-            seek_just_before_index(args.file, f, args.time_init)
+            seek_just_before_index(args.file, f, args.time_init - args.max_log_late_seconds)
         process_stream(f, args, lambda x: print (x))
 
 if __name__ == '__main__':

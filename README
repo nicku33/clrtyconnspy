@@ -70,6 +70,10 @@ The output format is chosen for easy reading into a database, no matter
 how large the collections get, since it is envisioned that
 there could be a large number of domains. The fields are
 
+NOTE: If given a list of files, they must be in timestamp order
+and not overlap beyond the configuarable --max_log_late_seconds, 
+or records will be skipped.
+
 1. Hour of summary as timestamp
 2. Does this belong to the --to query or the --from query
 3. One of the domains found

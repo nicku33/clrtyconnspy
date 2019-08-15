@@ -42,8 +42,8 @@ def parse_argv(argv):
                  'dumped. However you many only want completed hours')
     args_parser.add_argument('--tail', required=False, default=False,
             action='store_true',
-            help='if present, the application will continue to read first file '
-                 'given and output when a new hour appears in the logs. '
+            help='The application will read all files but not close the last '
+                 'file but scan it for appends.'
                  'Note this means that an inactive log will not output a row '
                  'Even if the clock time crosses the hour. "current time" is '
                  'entirely a function of data.')

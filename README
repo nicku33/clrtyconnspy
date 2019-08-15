@@ -100,9 +100,10 @@ optional arguments:
   --only_complete_hours
                         Normally at end of batch, partially completed hours
                         are dumped. However you many only want completed hours
-  --tail                if present, the application will continue to read
-                        first file given and output when a new hour appears in
-                        the logs. Note this means that an inactive log will
+  --tail                if present, the application will read all files but 
+                        continue to scan the last file for appends and output
+                        when new hour boundries are detected.
+                        Note this means that an inactive log will
                         not output a row Even if the clock time crosses the
                         hour. "current time" is entirely a function of data.
   --max_log_late_seconds MAX_LOG_LATE_SECONDS

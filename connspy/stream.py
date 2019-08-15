@@ -3,10 +3,10 @@ import logging
 import argparse
 import re
 import datetime
-
 from collections import Counter, defaultdict
 from time import sleep
 
+from bloomset import BloomStringSet
 from parser import Parser, VALID_HOST_REGEX
 
 logger = logging.getLogger("stream")
@@ -35,6 +35,10 @@ def parse_argv(argv):
             help='Collect all hosts who connected to this host')
     args_parser.add_argument('--from', type=str, dest='frm', required=True,
             help='Collect all hosts who this host connected to')
+    args_parser.add_argument('--only_complete_hours', default=False,
+            action='store_true', 
+            help='Normally at end of batch, partially completed hours are '
+                 'dumped. However you many only want completed hours')
     args_parser.add_argument('--tail', required=False, default=False,
             action='store_true',
             help='if present, the application will continue to read first file '
@@ -65,23 +69,32 @@ def parse_argv(argv):
     return args
 
 
-def process(fs, args, callback):
+def process(fs, args, callback, tail=False):
     parser = Parser()
 
     # bookkeeping... we need current hour and
     # one for the upcoming hour
 
     TO, FROM, MOST = 0, 1, 2
-    hourly_summaries = defaultdict(lambda: [set(), set(), LimitedCounter()])
+    # hourly_summaries = defaultdict(lambda: [set(), set(), LimitedCounter()])
+    hourly_summaries = defaultdict(lambda: [BloomStringSet(), BloomStringSet(), LimitedCounter()])
    
-    asdate = lambda ts: datetime.datetime.utcfromtimestamp(ts)
     def hour_of(ts):
         dt = datetime.datetime.utcfromtimestamp(ts)
         return datetime.datetime(dt.year, dt.month, dt.day, 
                                  dt.hour, 0, 0, 
                                  tzinfo=datetime.timezone.utc).timestamp()
-    for f in fs:
-        for line in f:
+    while fs:
+        f = fs.pop(0)
+        while True:
+            line = f.readline()
+            if line == "":
+                if tail:
+                    time.sleep(0.5)
+                    continue
+                else:
+                    break
+
             ts, frm, to = parser.parse(line)
             if not ts:
                 continue
@@ -103,16 +116,26 @@ def process(fs, args, callback):
 
             # ok, if this timestamp is > than our waiting period
             # we can call the oldest hour summary mature
-            # TODO: Think about what happens if keys from far future
-            # come in
+
             current_hour = min(hourly_summaries.keys())
 
             if ts-current_hour > (3600 + args.max_log_late_seconds):
+                summary = hourly_summaries[current_hour]
                 callback(current_hour,
-                        hourly_summaries[current_hour][TO],
-                        hourly_summaries[current_hour][FROM],
-                        hourly_summaries[current_hour][MOST].most_common(1)[0][0])
+                    summary[TO],
+                    summary[FROM],
+                    summary[MOST].most_common(1)[0][0])
                 del(hourly_summaries[current_hour])
+    
+    # if we've finished all files, dump remaining
+    if not args.only_complete_hours:
+        hours = sorted(hourly_summaries.keys())
+        for hour in hours:
+            summary = hourly_summaries[hour]
+            callback(hour,
+                summary[TO],
+                summary[FROM],
+                summary[MOST].most_common(1)[0][0])
 
 
 def main():
@@ -121,6 +144,7 @@ def main():
     # stdin case
     if len(arg.files) == 0:
         logger.info("Reading from stdin")
+        # not readline from stdin automatically blocks
         process_stream(sys.stdin, args)
         return
 
@@ -130,10 +154,5 @@ def main():
 
         # TODO: Error recovery on bad file ? better to fail or skip
         with open(files_remaining.pop(0), 'r') as f:
-            if not files_remaining and args.tail:
-                while True:
-                    process_stream(f, args)
-                    sleep(0.1)               # 100 ms
-                    # TODO: Should we partially dump if signalled somehow ?
-            else:
-                process_stream(f, args)
+            should_tail = not files_remaining and args.tail
+            process_stream(f, args, tail=should_tail)

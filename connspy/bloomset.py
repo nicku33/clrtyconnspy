@@ -40,16 +40,18 @@ class BloomStringSet:
 
     def __contains__(self, key):
         return key in self.bloom
-
-    def items(self):
-        # TODO: if items() not totally consumed
-        # file pointer won't be at end, so shouldn't append
-        # will just block this for now
+    
+    def __iter__(self):
         self.closed = True
-
         self.file.seek(0)
+        return self
 
-        # must be a generator to avoid buffering list in memory
-        for ele in self.file:
-            ele = ele.strip()
-            yield ele
+    def __next__(self):
+        line = self.file.readline()
+        if line == '':
+            self.file.close()
+            raise StopIteration
+        return line.strip()
+
+    def __del__(self):
+        self.file.close()

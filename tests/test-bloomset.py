@@ -13,6 +13,6 @@ class BloomsetTest(unittest.TestCase):
         s.add("2")
         self.assertTrue("2" in s)
 
-        res = sorted(list(s.items()))
+        res = sorted(list(s))
         self.assertListEqual(["1","2"], res)
 

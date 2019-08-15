@@ -43,8 +43,8 @@ class Parser():
             return INVALID
 
         # regex useful if you need character range guaratees for trie or compression)
-        if not (self.valid_domain_regex.match(ele[0]) and
-                self.valid_domain_regex.match(ele[1])):
+        if not (self.valid_domain_regex.match(ele[1]) and
+                self.valid_domain_regex.match(ele[2])):
             logger.error("Invalid domains for line: " + line)
             return INVALID
        

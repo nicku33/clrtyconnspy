@@ -5,8 +5,8 @@ import unittest
 import re
 
 from collections import namedtuple 
-from parser import Parser, VALID_HOST_REGEX
-from binaryseek import seek_just_before_index
+from connspy.parser import Parser, VALID_HOST_REGEX
+from connspy.binaryseek import seek_just_before_index
 
 logger = logging.getLogger("connspy")
 

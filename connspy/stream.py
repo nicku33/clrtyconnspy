@@ -7,8 +7,8 @@ import time
 from collections import Counter, defaultdict
 from time import sleep
 
-from bloomset import BloomStringSet
-from parser import Parser, VALID_HOST_REGEX
+from connspy.bloomset import BloomStringSet
+from connspy.parser import Parser, VALID_HOST_REGEX
 
 logger = logging.getLogger("stream")
 logger.setLevel(logging.DEBUG)
@@ -117,6 +117,7 @@ class Processor:
             # seen hosts bookkeeping
             if to == args.to and frm not in summary[TO]:
                 summary[TO].add(frm)
+
             if frm == args.frm and to not in summary[FROM]:
                 summary[FROM].add(to)
      

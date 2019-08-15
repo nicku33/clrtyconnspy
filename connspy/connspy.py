@@ -15,26 +15,29 @@ def parse_argv(argv):
             "connspy: parse connection logs to see who is connecting to who")
     args_parser.add_argument('--to', type=str, required=False,
             help='Collect all hosts who connected to this host')
-    args_parser.add_argument('--time_init', type=int, required=True,
+    args_parser.add_argument('--time_init', type=str, required=True,
             help='the earliest time stamp of the log entries we should consider')
-    args_parser.add_argument('--time_end', type=int, required=True,
+    args_parser.add_argument('--nofastseek', action='store_true',
+            default=False, help='do not use fast block seek to start time')
+    args_parser.add_argument('--time_end', type=str, required=True,
             help='the end of the time stamp range, noninclusive'),
     args_parser.add_argument('--max_log_late_seconds', type=int, 
             required=False, default=5 * 60, 
             help='the maximum time in seconds a log line can be late, relative to minimum time')
-    args_parser.add_argument('file', type=str, nargs='*', default=None,
+    args_parser.add_argument('file', type=str, default=None,
             help='the file to parse') 
 
     args = args_parser.parse_args(argv) 
     args.to = args.to.lower()
 
-    MIN_TS = 1199145600   # Jan 1, 2008 midnight
     if args.max_log_late_seconds < 0:
         raise Exception("max_log_late_seconds mist be positive")
-    if args.time_init < MIN_TS:
-        raise Exception("time_init is too small")
-    if args.time_end < MIN_TS:
-        raise Exception("time_end is too small")
+    args.time_init = Parser.parse_ts(args.time_init)
+    if not args.time_init:
+        raise Exception("time_init invalid")
+    args.time_end = Parser.parse_ts(args.time_end)
+    if not args.time_end:
+        raise Exception("time_end invalid")
     if args.time_end < args.time_init:
         raise Exception("time_end is before time_init")
     if not re.match(VALID_HOST_REGEX, args.to):
@@ -70,7 +73,8 @@ def main():
     logger.info("opening " + args.file)
 
     with open(args.file, 'r') as f:
-        seek_just_before_index(args.file, f, args.time_init)
+        if not args.nofastseek:
+            seek_just_before_index(args.file, f, args.time_init)
         process_stream(f, args, lambda x: print (x))
 
 if __name__ == '__main__':

@@ -16,6 +16,17 @@ class Parser():
     def __init__(self):
         self.valid_domain_regex = re.compile(VALID_HOST_REGEX)
 
+    def parse_ts(ts):
+        try:
+            ts = float(ts)
+            if ts > 999999999999:
+                ts /= 1000.0
+            dt = datetime.datetime.fromtimestamp(ts)
+            ts = dt.timestamp()
+            return ts
+        except:
+            return None
+
     def parse(self, line):
         # nb. no argument to .split means split on multiple whitespace '\s+'
         # also ignores initial and final whitespace
@@ -25,14 +36,9 @@ class Parser():
         if len(ele) != 3:
             logger.error("Invalid line, too many elements: " + line)
             return INVALID 
+        ts = Parser.parse_ts(ele[0])
 
-        try:
-            ts = float(ele[0])
-            if ts > 999999999999:
-                ts /= 1000.0
-            dt = datetime.datetime.fromtimestamp(ts)
-            ts = dt.timestamp()
-        except:
+        if not ts:
             logger.error(f"Cannot parse {ele[0]} into a timestamp")
             return INVALID
 

@@ -7,7 +7,7 @@ class ProcessorTest(unittest.TestCase):
         f = [ "1576815793 quark garak", 
               "1576815795 brunt quark", 
               "1576815811 lilac garak"]
-        args = parse_argv('--time_init 1567000000 --time_end 1580000000 --to garak'.split())
+        args = parse_argv('--time_init 1567000000 --time_end 1580000000 --to garak dummyfile'.split())
         out = []
         process_stream(f, args, lambda x: out.append(x))
         self.assertListEqual(['lilac', 'quark'], sorted(out))
@@ -22,12 +22,12 @@ class ProcessorTest(unittest.TestCase):
               "1570000006 b x"]
 
         out = []
-        args = parse_argv('--time_init 1567000000 --time_end 1580000000 --to x'.split())
+        args = parse_argv('--time_init 1567000000 --time_end 1580000000 --to x dummyfile'.split())
         process_stream(f, args, lambda x: out.append(x))
         self.assertListEqual(['a', 'b'], sorted(out))
 
         out = []
-        args = parse_argv('--time_init 1567000000 --time_end 1580000000 --to y'.split())
+        args = parse_argv('--time_init 1567000000 --time_end 1580000000 --to y dummyfile'.split())
         process_stream(f, args, lambda x: out.append(x))
         self.assertListEqual(['a', 'b', 'x'], sorted(out))
 
@@ -42,7 +42,7 @@ class ProcessorTest(unittest.TestCase):
         out = []
         
         args = parse_argv('--time_init 1570000002 --time_end 1570000005 '
-                          '--to y'.split())
+                          '--to y dummyfile'.split())
         process_stream(f, args, lambda x: out.append(x))
         out.sort()
         self.assertListEqual(['a', 'b'], sorted(out))
@@ -60,7 +60,7 @@ class ProcessorTest(unittest.TestCase):
               
         out = []
         args = parse_argv('--time_init 1570000002 --time_end 1570000005 '
-                          '--to y --max_log_late_seconds 4'.split())
+                          '--to y --max_log_late_seconds 4 dummyfile'.split())
         
         process_stream(f, args, lambda x: out.append(x))
 

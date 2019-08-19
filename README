@@ -19,7 +19,7 @@ or
 
 This will place the 'connspy' and 'connspy-stream' utility in your path as well.
 
-Tests can be run with ./tests.sh
+Tests can be run with ./test.sh
 
 
 
